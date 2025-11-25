@@ -1,0 +1,7 @@
+{
+  "name": "Bunker Box",
+  "description": "A festival-ready punch bag arcade interface designed for ESP32 accelerometer input. Features a high-contrast neon aesthetic, real-time force feedback, and simple operator controls.",
+  "requestFramePermissions": [
+    "bluetooth"
+  ]
+}

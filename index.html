@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bunker Box</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", 'monospace'],
+              sans: ['system-ui', 'Arial', 'sans-serif'],
+              black: ['Impact', 'Haettenschweiler', 'Arial Narrow Bold', 'sans-serif'],
+            },
+            colors: {
+              cartoon: {
+                cyan: '#22d3ee',
+                magenta: '#e879f9',
+                yellow: '#facc15',
+                lime: '#a3e635',
+                red: '#ef4444',
+                purple: '#a855f7',
+                black: '#000000',
+                white: '#ffffff',
+                bg: '#f0f9ff', // Very light cyan tint
+              }
+            },
+            boxShadow: {
+              'hard': '4px 4px 0px 0px #000000',
+              'hard-lg': '8px 8px 0px 0px #000000',
+              'hard-xl': '12px 12px 0px 0px #000000',
+            },
+            animation: {
+              'pulse-fast': 'pulse 0.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+              'shake-hard': 'shake-hard 0.4s cubic-bezier(.36,.07,.19,.97) both',
+              'pop-in': 'popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+              'bounce-slow': 'bounce 3s infinite',
+            },
+            keyframes: {
+              shake: {
+                '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+              },
+              'shake-hard': {
+                '0%, 100%': { transform: 'translate(0, 0) rotate(0deg)' },
+                '10%': { transform: 'translate(-5px, -5px) rotate(-1deg)' },
+                '20%': { transform: 'translate(5px, 5px) rotate(1deg)' },
+                '30%': { transform: 'translate(-5px, 5px) rotate(-1deg)' },
+                '40%': { transform: 'translate(5px, -5px) rotate(1deg)' },
+                '50%': { transform: 'translate(-2px, 2px) rotate(0deg)' },
+                '60%': { transform: 'translate(2px, -2px) rotate(0deg)' }
+              },
+              popIn: {
+                '0%': { opacity: '0', transform: 'scale(0.5)' },
+                '100%': { opacity: '1', transform: 'scale(1)' }
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background-color: #fff;
+        color: #000;
+        overflow: hidden; 
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 12px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #fff;
+        border-left: 2px solid #000;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #22d3ee;
+        border: 2px solid #000;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #06b6d4;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

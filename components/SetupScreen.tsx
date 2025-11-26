@@ -43,7 +43,8 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
     setHasSensors(false);
     const success = await onConnect();
     if (success) {
-      setStatus('calibrating'); 
+      // Connection successful and sensors active
+      setStatus('ready');
     } else {
       setStatus('error');
       setTimeout(() => setStatus('idle'), 3000);

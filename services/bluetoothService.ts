@@ -92,10 +92,15 @@ class BluetoothService {
   private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
   
   private dataCallback: DataCallback | null = null;
+  private disconnectCallback: (() => void) | null = null;
   private logCallbacks: LogCallback[] = [];
 
   private isSimulating: boolean = false;
   private simulationTimeout: number | null = null;
+  private simulationInterval: number | null = null;
+
+  private decoder = new TextDecoder('utf-8');
+  private lastLogTime = 0;
 
   // Default UUIDs (HM-10 / MLT-BT05 style 0xFFE0 standard)
   // Full UUID: 0000ffe0-0000-1000-8000-00805f9b34fb
@@ -129,6 +134,10 @@ class BluetoothService {
     this.logCallbacks.push(callback);
   }
 
+  public onDisconnect(callback: () => void) {
+    this.disconnectCallback = callback;
+  }
+
   private log(message: string, type: 'info' | 'error' | 'success' | 'warning' = 'info') {
     const entry: LogEntry = { timestamp: Date.now(), message, type };
     console.log(`[BLE][${type}] ${message}`);
@@ -143,26 +152,27 @@ class BluetoothService {
     try {
       if (this.isSimulating) this.stopSimulation();
 
+      // Check if running in iframe (like VS Code Simple Browser)
+      if (window.self !== window.top) {
+          this.log("Running in iframe/embedded view. Web Bluetooth might be blocked.", 'warning');
+          alert("Please open this app in a separate browser window (Chrome/Edge). VS Code's preview blocks Bluetooth.");
+      }
+
       if (!navigator.bluetooth) {
         this.log("Web Bluetooth not supported.", 'error');
         alert("Web Bluetooth is not supported in this browser.");
         return false;
       }
 
-      this.log("Scanning for ALL devices...", 'info');
+      this.log("Scanning for devices...", 'info');
       
-      const optionalServices = [
-            this.serviceUUID,                       
-            '0000ffe0-0000-1000-8000-00805f9b34fb', 
-            0xFFE0,                                 
-            "ffe0",                                 
-            'device_information',                   
-            'battery_service'                       
-      ];
-
+      // Robust filter configuration
+      // We ask for the specific service in optionalServices to ensure access
       this.device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: optionalServices
+        filters: [
+          { name: 'BUNKERBOX' }
+        ],
+        optionalServices: [0xFFE0, '0000ffe0-0000-1000-8000-00805f9b34fb']
       });
 
       if (!this.device) {
@@ -196,10 +206,7 @@ class BluetoothService {
         }
       }
 
-      this.setupGatt().catch(err => {
-        this.log(`SETUP FAILED: ${err.message}`, 'error');
-        this.log('Try "Retry Sensors" or check UUIDs in settings.', 'warning');
-      });
+      await this.setupGatt();
 
       return true;
 
@@ -297,7 +304,14 @@ class BluetoothService {
       this.log(`Characteristic attached: ${char.uuid.substring(0,8)}...`, 'success');
 
       this.log('Starting Notifications...', 'info');
-      await this.characteristic.startNotifications();
+      try {
+          await this.characteristic.startNotifications();
+      } catch (notifyErr: any) {
+          this.log(`Notify failed (${notifyErr.message}). Retrying in 1s...`, 'warning');
+          await this.wait(1000);
+          await this.characteristic.startNotifications();
+      }
+      
       this.characteristic.addEventListener('characteristicvaluechanged', this.handleCharacteristicValueChanged);
       
       this.log('SENSORS ACTIVE. BINARY MODE.', 'success');
@@ -310,6 +324,7 @@ class BluetoothService {
 
   private onDisconnected = () => {
     this.log('Device Disconnected.', 'warning');
+    if (this.disconnectCallback) this.disconnectCallback();
   };
 
   public startDemoMode() {
@@ -323,6 +338,13 @@ class BluetoothService {
       if (this.device.gatt && this.device.gatt.connected) {
         this.device.gatt.disconnect();
       }
+    }
+    if (this.characteristic) {
+        try {
+            this.characteristic.removeEventListener('characteristicvaluechanged', this.handleCharacteristicValueChanged);
+        } catch (e) {
+            // Ignore if already removed or invalid
+        }
     }
     this.stopSimulation();
     this.device = null;
@@ -340,21 +362,77 @@ class BluetoothService {
     const value = target.value;
     if (!value) return;
 
-    if (value.byteLength < 6) return;
+    let x = 0, y = 0, z = 0;
+    let parsed = false;
 
-    const rawX = value.getInt16(0, true);
-    const rawY = value.getInt16(2, true);
-    const rawZ = value.getInt16(4, true);
+    // Debug: Log raw packet size occasionally
+    const now = Date.now();
+    // if (now - this.lastLogTime > 5000) {
+    //    console.log(`[BLE] Packet Size: ${value.byteLength}`);
+    // }
 
-    const LSB_PER_G = 2048.0;
-    const GRAVITY_MS2 = 9.80665;
-    const factor = GRAVITY_MS2 / LSB_PER_G;
+    // OPTIMIZATION: Check for Binary Format First (Fixed 6 bytes)
+    if (value.byteLength === 6) {
+        const rawX = value.getInt16(0, true);
+        const rawY = value.getInt16(2, true);
+        const rawZ = value.getInt16(4, true);
+        
+        const LSB_PER_G = 2048.0;
+        const GRAVITY_MS2 = 9.80665;
+        const factor = GRAVITY_MS2 / LSB_PER_G;
 
-    const x = rawX * factor;
-    const y = rawY * factor;
-    const z = rawZ * factor;
+        x = rawX * factor;
+        y = rawY * factor;
+        z = rawZ * factor;
+        parsed = true;
+    } else {
+        // Fallback: Try Text Format
+        try {
+            const text = this.decoder.decode(value);
+            if (text.includes('X:') && text.includes('Y:')) {
+                const parts = text.split(' ');
+                parts.forEach(p => {
+                    if (p.startsWith('X:')) x = parseInt(p.substring(2));
+                    if (p.startsWith('Y:')) y = parseInt(p.substring(2));
+                    if (p.startsWith('Z:')) z = parseInt(p.substring(2));
+                });
+                parsed = true;
+            }
+        } catch (e) {
+            // Ignore
+        }
+    }
 
-    this.emitData(x, y, z);
+    // Fallback: Binary with extra bytes
+    if (!parsed && value.byteLength >= 6) {
+        const rawX = value.getInt16(0, true);
+        const rawY = value.getInt16(2, true);
+        const rawZ = value.getInt16(4, true);
+        
+        const LSB_PER_G = 2048.0;
+        const GRAVITY_MS2 = 9.80665;
+        const factor = GRAVITY_MS2 / LSB_PER_G;
+
+        x = rawX * factor;
+        y = rawY * factor;
+        z = rawZ * factor;
+        parsed = true;
+    }
+
+    if (parsed) {
+        this.emitData(x, y, z);
+        
+        if (now - this.lastLogTime > 2000) {
+            console.log(`[BLE] Data: X=${x.toFixed(1)} Y=${y.toFixed(1)} Z=${z.toFixed(1)}`);
+            this.lastLogTime = now;
+        }
+    } else {
+        // Log unparsed data to help debug
+        if (now - this.lastLogTime > 2000) {
+            console.warn(`[BLE] Unparsed Data (${value.byteLength} bytes)`);
+            this.lastLogTime = now;
+        }
+    }
   };
 
   private startSimulation() {
@@ -366,7 +444,8 @@ class BluetoothService {
     
     // Start a fast interval just for sensor decay, separate from punch logic
     // This keeps the values settling back to 0 smoothly
-    setInterval(() => {
+    if (this.simulationInterval) clearInterval(this.simulationInterval);
+    this.simulationInterval = window.setInterval(() => {
         if (!this.isSimulating) return;
         const noise = () => (Math.random() - 0.5) * 0.5;
         this.mockX *= 0.8;
@@ -425,6 +504,10 @@ class BluetoothService {
       clearTimeout(this.simulationTimeout);
       this.simulationTimeout = null;
     }
+    if (this.simulationInterval) {
+      clearInterval(this.simulationInterval);
+      this.simulationInterval = null;
+    }
     this.isSimulating = false;
   }
 
@@ -432,6 +515,8 @@ class BluetoothService {
     const mag = Math.sqrt(x*x + y*y + z*z);
     if (this.dataCallback) {
       this.dataCallback({ x, y, z, mag });
+    } else {
+      // console.warn("[BLE] No data callback registered!");
     }
   }
 }

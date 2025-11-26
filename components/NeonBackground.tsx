@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const NeonBackground: React.FC = () => {
+export const NeonBackground = React.memo(() => {
   return (
     <div className="fixed inset-0 z-0 bg-white overflow-hidden pointer-events-none">
       
@@ -27,4 +27,4 @@ export const NeonBackground: React.FC = () => {
       
     </div>
   );
-};
+});

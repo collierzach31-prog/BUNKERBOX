@@ -9,6 +9,10 @@ permissions:
   pages: write
   id-token: write
 
+defaults:
+  run:
+    working-directory: .
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,19 +25,11 @@ jobs:
         with:
           node-version: 20
           
-      - name: Check Directory Structure
-        run: ls -R
-          
       - name: Install Dependencies
-        run: |
-          rm -rf package-lock.json node_modules
-          npm install
+        run: npm install
         
       - name: Build
         run: npm run build
-        
-      - name: List Output
-        run: ls -R dist
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

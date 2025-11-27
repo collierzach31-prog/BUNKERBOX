@@ -19,11 +19,15 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: 'npm'
+          node-version: 20
+          
+      - name: Check Directory Structure
+        run: ls -R
           
       - name: Install Dependencies
-        run: npm install
+        run: |
+          rm -rf package-lock.json node_modules
+          npm install
         
       - name: Build
         run: npm run build

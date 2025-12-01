@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Settings, Zap, Crown, Flame, Volume2, VolumeX } from 'lucide-react';
+import { Settings, Zap, Crown, Flame } from 'lucide-react';
 import { SensorData } from '../types';
-import { playArcadeSound, setVolumes } from '../services/audioService';
+import { playArcadeSound } from '../services/audioService';
 
 interface GameScreenProps {
   sensorData: SensorData;
@@ -9,8 +9,6 @@ interface GameScreenProps {
   sensitivity: number;
   calibration: number;
   threshold: number;
-  sfxVolume: number;
-  musicVolume: number;
 }
 
 // --------------------
@@ -20,14 +18,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   onOpenSettings, 
   sensitivity,
   calibration,
-  threshold,
-  sfxVolume,
-  musicVolume
+  threshold
 }) => {
   const [targetScore, setTargetScore] = useState<number>(0);
   const [displayScore, setDisplayScore] = useState<number>(0);
   const [highScore, setHighScore] = useState<number>(0);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
   
   // Gauge States
   const [visualGauge, setVisualGauge] = useState(0); 
@@ -50,19 +45,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const isCollectingRef = useRef<boolean>(false);
   const currentPeakRef = useRef<number>(0);
   const collectionTimeoutRef = useRef<number | null>(null);
-  
-  // Mute Toggle Handler
-  const handleMuteToggle = () => {
-    setIsMuted(prev => {
-      const newMuted = !prev;
-      if (newMuted) {
-        setVolumes(0, 0);
-      } else {
-        setVolumes(sfxVolume, musicVolume);
-      }
-      return newMuted;
-    });
-  };
   
   // Cleanup
   useEffect(() => {
@@ -271,22 +253,93 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
   const containerShake = isImpact ? 'animate-shake-hard' : '';
 
+  // Generate floating shapes data (memoized)
+  const floatingShapes = React.useMemo(() => {
+    const shapes = [];
+    const colors = ['border-cartoon-cyan', 'border-cartoon-magenta', 'border-cartoon-yellow', 'border-cartoon-lime', 'border-cartoon-pink'];
+    
+    for (let i = 0; i < 12; i++) {
+      shapes.push({
+        id: i,
+        type: i % 3 === 0 ? 'circle' : i % 3 === 1 ? 'square' : 'triangle',
+        size: 20 + Math.random() * 60,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        color: colors[i % colors.length],
+        delay: Math.random() * 5,
+        duration: 8 + Math.random() * 12,
+        rotation: Math.random() * 360
+      });
+    }
+    return shapes;
+  }, []);
+
   return (
     <div className={`relative z-10 flex flex-col h-screen w-full overflow-hidden transition-colors duration-200 bg-white ${containerShake}`}>
+      
+      {/* Animated Background Shapes */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Comic Halftone Pattern */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: 'radial-gradient(#000 15%, transparent 15%)',
+            backgroundSize: '20px 20px'
+          }}
+        />
+        
+        {/* Floating Shapes */}
+        {floatingShapes.map((shape) => (
+          <div
+            key={shape.id}
+            className={`absolute border-4 ${shape.color} opacity-20 ${isImpact ? 'scale-150 opacity-40' : ''}`}
+            style={{
+              width: shape.size,
+              height: shape.size,
+              left: `${shape.x}%`,
+              top: `${shape.y}%`,
+              borderRadius: shape.type === 'circle' ? '50%' : shape.type === 'square' ? '4px' : '0',
+              transform: `rotate(${shape.rotation}deg)`,
+              animation: `float ${shape.duration}s ease-in-out infinite`,
+              animationDelay: `${shape.delay}s`,
+              clipPath: shape.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none',
+              transition: 'all 0.3s ease-out'
+            }}
+          />
+        ))}
+        
+        {/* Impact Burst Effect */}
+        {isImpact && (
+          <>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200vw] h-[200vw] rounded-full border-8 border-cartoon-yellow opacity-50 animate-ping" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150vw] h-[150vw] rounded-full border-4 border-cartoon-cyan opacity-30 animate-ping" style={{ animationDelay: '0.1s' }} />
+          </>
+        )}
+        
+        {/* Speed Lines on Impact */}
+        {isImpact && (
+          <div className="absolute inset-0">
+            {[...Array(16)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute top-1/2 left-1/2 h-1 bg-black opacity-20"
+                style={{
+                  width: '150%',
+                  transform: `rotate(${i * 22.5}deg)`,
+                  transformOrigin: 'left center',
+                  animation: 'speed-line 0.3s ease-out'
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
       
       {/* Header / Stats */}
       <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20">
         
-        {/* Left Column: Volume + Champ & History */}
+        {/* Left Column: Champ & History */}
         <div className="flex flex-col gap-2 items-start">
-            {/* Volume Button - Top Left for Phone */}
-            <button 
-                onClick={handleMuteToggle}
-                className={`bg-white border-4 border-black p-3 shadow-hard hover:shadow-none hover:translate-y-1 transition-all ${isMuted ? 'text-gray-400' : 'text-black'}`}
-            >
-                {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
-            </button>
-
             {/* Champ Box */}
             <div className="bg-white border-4 border-black p-3 shadow-hard transform -rotate-1">
             <div className="flex items-center gap-2 text-black mb-1">

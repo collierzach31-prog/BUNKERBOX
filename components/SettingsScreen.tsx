@@ -100,9 +100,61 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     onUpdateSettings({ [key]: value.trim() });
   };
 
+  // Generate floating shapes data (memoized)
+  const floatingShapes = React.useMemo(() => {
+    const shapes = [];
+    const colors = ['border-cartoon-cyan', 'border-cartoon-magenta', 'border-cartoon-yellow', 'border-cartoon-lime', 'border-cartoon-pink'];
+    
+    for (let i = 0; i < 8; i++) {
+      shapes.push({
+        id: i,
+        type: i % 2 === 0 ? 'circle' : 'square',
+        size: 30 + Math.random() * 50,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        color: colors[i % colors.length],
+        delay: Math.random() * 5,
+        duration: 10 + Math.random() * 10,
+        rotation: Math.random() * 360
+      });
+    }
+    return shapes;
+  }, []);
+
   return (
     <div className="relative z-10 flex flex-col h-screen w-full p-8 bg-white overflow-y-auto text-black font-sans">
-      <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+      
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* Comic Halftone Pattern */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: 'radial-gradient(#000 15%, transparent 15%)',
+            backgroundSize: '24px 24px'
+          }}
+        />
+        
+        {/* Floating Shapes */}
+        {floatingShapes.map((shape) => (
+          <div
+            key={shape.id}
+            className={`absolute border-4 ${shape.color} opacity-15`}
+            style={{
+              width: shape.size,
+              height: shape.size,
+              left: `${shape.x}%`,
+              top: `${shape.y}%`,
+              borderRadius: shape.type === 'circle' ? '50%' : '4px',
+              transform: `rotate(${shape.rotation}deg)`,
+              animation: `float ${shape.duration}s ease-in-out infinite`,
+              animationDelay: `${shape.delay}s`
+            }}
+          />
+        ))}
+      </div>
+      
+      <div className="relative z-10 max-w-4xl mx-auto w-full flex-1 flex flex-col">
         
         {/* Comic Header */}
         <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-4">

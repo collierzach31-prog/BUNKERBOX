@@ -129,8 +129,6 @@ const App: React.FC = () => {
             sensitivity={settings.sensitivity}
             calibration={settings.calibration}
             threshold={settings.threshold}
-            sfxVolume={settings.sfxVolume ?? 50}
-            musicVolume={settings.musicVolume ?? 50}
           />
         )}
 

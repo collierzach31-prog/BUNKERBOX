@@ -30,40 +30,38 @@ export const BackgroundMusic = React.memo(() => {
 
   useEffect(() => {
     if (isMusicPlaying) {
-        // Try to resume immediately (works if policy allows)
         if (audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume().catch(() => {});
         }
 
-        // ~70 BPM dark trap (214ms per 16th note) - slow and menacing
-        const stepTime = 214;
+        // ~95 BPM - punchy hip-hop tempo
+        const stepTime = 158;
         beatStepRef.current = 0;
         
         musicIntervalRef.current = window.setInterval(() => {
             if (!audioCtx) return;
-            
             if (audioCtx.state === 'suspended') return;
 
             const now = audioCtx.currentTime;
             const step = beatStepRef.current % 16;
             
-            // Sparse kick pattern - just on the 1
-            if (step === 0) {
+            // Punchy kick pattern
+            if (step === 0 || step === 10) {
                 playDrum('kick', now);
             }
             
-            // Hard snare on 2 and 4
+            // Snare on 2 and 4
             if (step === 4 || step === 12) {
                 playDrum('snare', now);
             }
             
-            // Minimal hi-hats - just accents
-            if (step === 0 || step === 4 || step === 8 || step === 12) {
+            // Hi-hats - steady groove
+            if (step % 2 === 0) {
                 playDrum('hat', now);
             }
             
-            // Deep 808 on the 1
-            if (step === 0) {
+            // Bass on 1 and 3
+            if (step === 0 || step === 8) {
                 playDrum('bass', now);
             }
 

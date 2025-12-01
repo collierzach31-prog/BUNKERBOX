@@ -170,37 +170,37 @@ export const playArcadeSound = (type: 'impact' | 'tick' | 'win' | 'lock' | 'newR
   }
 };
 
-// DARK TRAP DRUM MACHINE
+// HIP-HOP DRUM MACHINE
 export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) => {
     if (!audioCtx) return;
     const gain = audioCtx.createGain();
     gain.connect(audioCtx.destination);
 
     if (type === 'kick') {
-        // Heavy 808 kick - deep and punchy
+        // Punchy boom-bap kick
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.connect(gain);
-        osc.frequency.setValueAtTime(120, time);
-        osc.frequency.exponentialRampToValueAtTime(30, time + 0.2);
-        gain.gain.setValueAtTime(1.0 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
+        osc.frequency.setValueAtTime(100, time);
+        osc.frequency.exponentialRampToValueAtTime(50, time + 0.08);
+        gain.gain.setValueAtTime(0.8 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.25);
         osc.start(time);
-        osc.stop(time + 0.5);
+        osc.stop(time + 0.25);
         
     } else if (type === 'snare') {
-        // Hard clap/snare
+        // Classic hip-hop snare
         const osc = audioCtx.createOscillator();
         osc.type = 'triangle';
         osc.connect(gain);
-        osc.frequency.setValueAtTime(180, time);
-        gain.gain.setValueAtTime(0.3 * musicVolume, time);
+        osc.frequency.setValueAtTime(220, time);
+        gain.gain.setValueAtTime(0.35 * musicVolume, time);
         gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
         osc.start(time);
         osc.stop(time + 0.08);
 
-        // Snare noise - crispy
-        const bSize = audioCtx.sampleRate * 0.2;
+        // Snare crack
+        const bSize = audioCtx.sampleRate * 0.12;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
         for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
@@ -208,21 +208,21 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) 
         noise.buffer = buff;
         
         const filter = audioCtx.createBiquadFilter();
-        filter.type = 'highpass';
-        filter.frequency.value = 1200;
+        filter.type = 'bandpass';
+        filter.frequency.value = 3000;
         
         const nGain = audioCtx.createGain();
         noise.connect(filter);
         filter.connect(nGain);
         nGain.connect(audioCtx.destination);
 
-        nGain.gain.setValueAtTime(0.45 * musicVolume, time);
-        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+        nGain.gain.setValueAtTime(0.3 * musicVolume, time);
+        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
         noise.start(time);
         
     } else if (type === 'hat') {
-        // Dark hi-hat
-        const bSize = audioCtx.sampleRate * 0.05;
+        // Crisp hi-hat
+        const bSize = audioCtx.sampleRate * 0.04;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
         for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
@@ -231,29 +231,26 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) 
         
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 5000;
+        filter.frequency.value = 7000;
         
         noise.connect(filter);
         filter.connect(gain);
         
         gain.gain.setValueAtTime(0.12 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.04);
         noise.start(time);
         
     } else if (type === 'bass') {
-        // Deep sliding 808 - long sustain
+        // Round sub bass
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.connect(gain);
         
-        // Slide down for that dark feel
-        osc.frequency.setValueAtTime(50, time);
-        osc.frequency.exponentialRampToValueAtTime(32, time + 0.3);
+        osc.frequency.setValueAtTime(55, time);
         
-        gain.gain.setValueAtTime(0.7 * musicVolume, time);
-        gain.gain.setValueAtTime(0.65 * musicVolume, time + 0.5);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 1.2);
+        gain.gain.setValueAtTime(0.4 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.4);
         osc.start(time);
-        osc.stop(time + 1.2);
+        osc.stop(time + 0.4);
     }
 };

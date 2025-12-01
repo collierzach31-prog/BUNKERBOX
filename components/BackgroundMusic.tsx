@@ -34,8 +34,8 @@ export const BackgroundMusic = React.memo(() => {
             audioCtx.resume().catch(() => {});
         }
 
-        // ~95 BPM - punchy hip-hop tempo
-        const stepTime = 158;
+        // ~140 BPM - fast arcade energy!
+        const stepTime = 107;
         beatStepRef.current = 0;
         
         musicIntervalRef.current = window.setInterval(() => {
@@ -45,23 +45,21 @@ export const BackgroundMusic = React.memo(() => {
             const now = audioCtx.currentTime;
             const step = beatStepRef.current % 16;
             
-            // Punchy kick pattern
-            if (step === 0 || step === 10) {
+            // Driving kick - 4 on the floor arcade style
+            if (step === 0 || step === 4 || step === 8 || step === 12) {
                 playDrum('kick', now);
             }
             
-            // Snare on 2 and 4
+            // Snappy snare on offbeats
             if (step === 4 || step === 12) {
                 playDrum('snare', now);
             }
             
-            // Hi-hats - steady groove
-            if (step % 2 === 0) {
-                playDrum('hat', now);
-            }
+            // Fast hi-hats - every step for arcade energy
+            playDrum('hat', now);
             
-            // Bass on 1 and 3
-            if (step === 0 || step === 8) {
+            // Synth bass pulse
+            if (step === 0 || step === 6 || step === 8 || step === 14) {
                 playDrum('bass', now);
             }
 

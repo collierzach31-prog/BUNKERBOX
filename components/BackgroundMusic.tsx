@@ -35,49 +35,36 @@ export const BackgroundMusic = React.memo(() => {
             audioCtx.resume().catch(() => {});
         }
 
-        // ~120 BPM slower trap tempo (125ms per 16th note)
-        const stepTime = 125;
+        // ~70 BPM dark trap (214ms per 16th note) - slow and menacing
+        const stepTime = 214;
         beatStepRef.current = 0;
         
         musicIntervalRef.current = window.setInterval(() => {
             if (!audioCtx) return;
             
-            // If context is still suspended, we can't hear anything, but we keep the loop running
-            // so it picks up immediately when resumed.
             if (audioCtx.state === 'suspended') return;
 
             const now = audioCtx.currentTime;
-            const step = beatStepRef.current % 32; // 2-bar loop
+            const step = beatStepRef.current % 16;
             
-            // TRAP PATTERN
-            // Kick on 1, and syncopated hits
-            if (step === 0 || step === 6 || step === 16 || step === 22) {
+            // Sparse kick pattern - just on the 1
+            if (step === 0) {
                 playDrum('kick', now);
             }
             
-            // Snare on 2 and 4 (steps 8 and 24)
-            if (step === 8 || step === 24) {
+            // Hard snare on 2 and 4
+            if (step === 4 || step === 12) {
                 playDrum('snare', now);
             }
             
-            // Hi-hats - rapid fire trap style
-            if (step % 2 === 0) {
+            // Minimal hi-hats - just accents
+            if (step === 0 || step === 4 || step === 8 || step === 12) {
                 playDrum('hat', now);
             }
             
-            // Hi-hat rolls before the snare (signature trap sound)
-            if (step === 7 || step === 23) {
-                playDrum('hatRoll', now);
-            }
-            
-            // Extra hat triplets for that bounce
-            if (step === 3 || step === 11 || step === 19 || step === 27) {
-                playDrum('hat', now);
-            }
-            
-            // Sliding 808 bass on the 1
-            if (step === 0 || step === 16) {
-                playDrum('808slide', now);
+            // Deep 808 on the 1
+            if (step === 0) {
+                playDrum('bass', now);
             }
 
             beatStepRef.current++;

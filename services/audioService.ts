@@ -170,50 +170,37 @@ export const playArcadeSound = (type: 'impact' | 'tick' | 'win' | 'lock' | 'newR
   }
 };
 
-// FLORIDA TRAP DRUM MACHINE (Kodak-inspired vibe)
-export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass' | 'hatRoll' | '808slide', time: number) => {
+// DARK TRAP DRUM MACHINE
+export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) => {
     if (!audioCtx) return;
     const gain = audioCtx.createGain();
     gain.connect(audioCtx.destination);
 
     if (type === 'kick') {
-        // Hard-hitting 808 kick
+        // Heavy 808 kick - deep and punchy
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.connect(gain);
-        osc.frequency.setValueAtTime(150, time);
-        osc.frequency.exponentialRampToValueAtTime(35, time + 0.15);
-        gain.gain.setValueAtTime(1.2 * musicVolume, time);
+        osc.frequency.setValueAtTime(120, time);
+        osc.frequency.exponentialRampToValueAtTime(30, time + 0.2);
+        gain.gain.setValueAtTime(1.0 * musicVolume, time);
         gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
         osc.start(time);
         osc.stop(time + 0.5);
         
-        // Add click transient for punch
-        const click = audioCtx.createOscillator();
-        const clickGain = audioCtx.createGain();
-        click.type = 'square';
-        click.frequency.value = 1000;
-        click.connect(clickGain);
-        clickGain.connect(audioCtx.destination);
-        clickGain.gain.setValueAtTime(0.3 * musicVolume, time);
-        clickGain.gain.exponentialRampToValueAtTime(0.01, time + 0.02);
-        click.start(time);
-        click.stop(time + 0.02);
-        
     } else if (type === 'snare') {
-        // Trap snare - tight and snappy
+        // Hard clap/snare
         const osc = audioCtx.createOscillator();
         osc.type = 'triangle';
         osc.connect(gain);
-        osc.frequency.setValueAtTime(250, time);
-        osc.frequency.exponentialRampToValueAtTime(150, time + 0.05);
-        gain.gain.setValueAtTime(0.5 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
+        osc.frequency.setValueAtTime(180, time);
+        gain.gain.setValueAtTime(0.3 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
         osc.start(time);
-        osc.stop(time + 0.15);
+        osc.stop(time + 0.08);
 
-        // Crispy snare noise
-        const bSize = audioCtx.sampleRate * 0.15;
+        // Snare noise - crispy
+        const bSize = audioCtx.sampleRate * 0.2;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
         for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
@@ -222,20 +209,20 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass' | 'hatRoll' | '
         
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 2000;
+        filter.frequency.value = 1200;
         
         const nGain = audioCtx.createGain();
         noise.connect(filter);
         filter.connect(nGain);
         nGain.connect(audioCtx.destination);
 
-        nGain.gain.setValueAtTime(0.5 * musicVolume, time);
-        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
+        nGain.gain.setValueAtTime(0.45 * musicVolume, time);
+        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
         noise.start(time);
         
     } else if (type === 'hat') {
-        // Tight closed hi-hat
-        const bSize = audioCtx.sampleRate * 0.03;
+        // Dark hi-hat
+        const bSize = audioCtx.sampleRate * 0.05;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
         for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
@@ -244,67 +231,29 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass' | 'hatRoll' | '
         
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 7000;
+        filter.frequency.value = 5000;
         
         noise.connect(filter);
         filter.connect(gain);
         
-        gain.gain.setValueAtTime(0.2 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.03);
+        gain.gain.setValueAtTime(0.12 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
         noise.start(time);
         
-    } else if (type === 'hatRoll') {
-        // Trap hi-hat roll (triplet feel)
-        for (let i = 0; i < 3; i++) {
-            const rollTime = time + (i * 0.05);
-            const bSize = audioCtx.sampleRate * 0.025;
-            const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
-            const dat = buff.getChannelData(0);
-            for(let j=0; j<bSize; j++) dat[j] = (Math.random()*2-1);
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buff;
-            
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'highpass';
-            filter.frequency.value = 8000;
-            
-            const rollGain = audioCtx.createGain();
-            noise.connect(filter);
-            filter.connect(rollGain);
-            rollGain.connect(audioCtx.destination);
-            
-            // Decay across the roll
-            const vol = (0.25 - (i * 0.05)) * musicVolume;
-            rollGain.gain.setValueAtTime(vol, rollTime);
-            rollGain.gain.exponentialRampToValueAtTime(0.01, rollTime + 0.025);
-            noise.start(rollTime);
-        }
-        
-    } else if (type === '808slide' || type === 'bass') {
-        // Sliding 808 bass (that Florida sound)
+    } else if (type === 'bass') {
+        // Deep sliding 808 - long sustain
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
+        osc.connect(gain);
         
-        // Add saturation/distortion for that gritty 808
-        const distortion = audioCtx.createWaveShaper();
-        const curve = new Float32Array(256);
-        for (let i = 0; i < 256; i++) {
-            const x = (i / 128) - 1;
-            curve[i] = Math.tanh(x * 2);
-        }
-        distortion.curve = curve;
+        // Slide down for that dark feel
+        osc.frequency.setValueAtTime(50, time);
+        osc.frequency.exponentialRampToValueAtTime(32, time + 0.3);
         
-        osc.connect(distortion);
-        distortion.connect(gain);
-        
-        // Slide from higher note down (signature trap 808)
-        osc.frequency.setValueAtTime(55, time); // A1
-        osc.frequency.exponentialRampToValueAtTime(36.71, time + 0.1); // D1 slide down
-        
-        gain.gain.setValueAtTime(0.6 * musicVolume, time);
-        gain.gain.setValueAtTime(0.6 * musicVolume, time + 0.3);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.8);
+        gain.gain.setValueAtTime(0.7 * musicVolume, time);
+        gain.gain.setValueAtTime(0.65 * musicVolume, time + 0.5);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 1.2);
         osc.start(time);
-        osc.stop(time + 0.8);
+        osc.stop(time + 1.2);
     }
 };

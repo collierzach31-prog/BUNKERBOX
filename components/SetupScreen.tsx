@@ -163,33 +163,6 @@ export const SetupScreen: React.FC<SetupScreenProps> = ({
 
       {/* Footer Area */}
       <div className="w-full max-w-4xl flex flex-col gap-4">
-          
-          {/* Comic Style Log Box */}
-          <div className="w-full bg-white border-4 border-black shadow-hard flex flex-col">
-             <div className="bg-cartoon-yellow border-b-4 border-black px-4 py-2 flex items-center justify-between">
-                 <div className="flex items-center gap-2 text-xs font-black uppercase">
-                    <Terminal size={14} />
-                    <span>Arena Log</span>
-                 </div>
-                 {isConnected && <div className="w-3 h-3 bg-green-500 border-2 border-black rounded-full animate-pulse"></div>}
-             </div>
-             <div 
-                ref={logContainerRef}
-                className="h-24 overflow-y-auto p-4 font-mono text-xs space-y-1 bg-white text-left"
-             >
-                {logs.length === 0 && <span className="text-gray-400 italic font-bold">Waiting for input...</span>}
-                {logs.map((log, i) => (
-                    <div key={i} className={`font-bold ${
-                        log.type === 'error' ? 'text-red-600' : 
-                        log.type === 'success' ? 'text-green-600' : 
-                        log.type === 'warning' ? 'text-orange-600' : 'text-gray-600'
-                    }`}>
-                        <span className="mr-2 opacity-50">[{new Date(log.timestamp).toLocaleTimeString().split(' ')[0]}]</span>
-                        {log.message}
-                    </div>
-                ))}
-             </div>
-          </div>
 
           <div className="flex justify-between items-center">
             <div className="bg-black text-white px-4 py-2 font-bold uppercase text-xs tracking-wider border-2 border-black shadow-hard transform skew-x-[-10deg]">

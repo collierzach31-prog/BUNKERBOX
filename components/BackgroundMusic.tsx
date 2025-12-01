@@ -35,8 +35,8 @@ export const BackgroundMusic = React.memo(() => {
             audioCtx.resume().catch(() => {});
         }
 
-        // ~140 BPM trap tempo (428ms per beat, ~107ms per 16th note)
-        const stepTime = 107;
+        // ~120 BPM slower trap tempo (125ms per 16th note)
+        const stepTime = 125;
         beatStepRef.current = 0;
         
         musicIntervalRef.current = window.setInterval(() => {

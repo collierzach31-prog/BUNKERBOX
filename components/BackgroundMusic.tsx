@@ -35,7 +35,8 @@ export const BackgroundMusic = React.memo(() => {
             audioCtx.resume().catch(() => {});
         }
 
-        const stepTime = 163;
+        // ~140 BPM trap tempo (428ms per beat, ~107ms per 16th note)
+        const stepTime = 107;
         beatStepRef.current = 0;
         
         musicIntervalRef.current = window.setInterval(() => {
@@ -46,12 +47,38 @@ export const BackgroundMusic = React.memo(() => {
             if (audioCtx.state === 'suspended') return;
 
             const now = audioCtx.currentTime;
-            const step = beatStepRef.current % 16;
+            const step = beatStepRef.current % 32; // 2-bar loop
             
-            if (step === 0 || step === 10) playDrum('kick', now);
-            if (step === 4 || step === 12) playDrum('snare', now);
-            if (step % 2 === 0) playDrum('hat', now);
-            if (step === 0) playDrum('bass', now);
+            // TRAP PATTERN
+            // Kick on 1, and syncopated hits
+            if (step === 0 || step === 6 || step === 16 || step === 22) {
+                playDrum('kick', now);
+            }
+            
+            // Snare on 2 and 4 (steps 8 and 24)
+            if (step === 8 || step === 24) {
+                playDrum('snare', now);
+            }
+            
+            // Hi-hats - rapid fire trap style
+            if (step % 2 === 0) {
+                playDrum('hat', now);
+            }
+            
+            // Hi-hat rolls before the snare (signature trap sound)
+            if (step === 7 || step === 23) {
+                playDrum('hatRoll', now);
+            }
+            
+            // Extra hat triplets for that bounce
+            if (step === 3 || step === 11 || step === 19 || step === 27) {
+                playDrum('hat', now);
+            }
+            
+            // Sliding 808 bass on the 1
+            if (step === 0 || step === 16) {
+                playDrum('808slide', now);
+            }
 
             beatStepRef.current++;
         }, stepTime);

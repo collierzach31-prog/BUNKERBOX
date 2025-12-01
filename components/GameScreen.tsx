@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Settings, Zap, Crown, Flame } from 'lucide-react';
+import { Settings, Zap, Crown, Flame, Volume2, VolumeX } from 'lucide-react';
 import { SensorData } from '../types';
-import { playArcadeSound } from '../services/audioService';
+import { playArcadeSound, setVolumes } from '../services/audioService';
 
 interface GameScreenProps {
   sensorData: SensorData;
@@ -9,6 +9,8 @@ interface GameScreenProps {
   sensitivity: number;
   calibration: number;
   threshold: number;
+  sfxVolume: number;
+  musicVolume: number;
 }
 
 // --------------------
@@ -18,11 +20,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   onOpenSettings, 
   sensitivity,
   calibration,
-  threshold
+  threshold,
+  sfxVolume,
+  musicVolume
 }) => {
   const [targetScore, setTargetScore] = useState<number>(0);
   const [displayScore, setDisplayScore] = useState<number>(0);
   const [highScore, setHighScore] = useState<number>(0);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   
   // Gauge States
   const [visualGauge, setVisualGauge] = useState(0); 
@@ -45,6 +50,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const isCollectingRef = useRef<boolean>(false);
   const currentPeakRef = useRef<number>(0);
   const collectionTimeoutRef = useRef<number | null>(null);
+  
+  // Mute Toggle Handler
+  const handleMuteToggle = () => {
+    setIsMuted(prev => {
+      const newMuted = !prev;
+      if (newMuted) {
+        setVolumes(0, 0);
+      } else {
+        setVolumes(sfxVolume, musicVolume);
+      }
+      return newMuted;
+    });
+  };
   
   // Cleanup
   useEffect(() => {
@@ -259,8 +277,16 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       {/* Header / Stats */}
       <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-20">
         
-        {/* Left Column: Champ & History */}
+        {/* Left Column: Volume + Champ & History */}
         <div className="flex flex-col gap-2 items-start">
+            {/* Volume Button - Top Left for Phone */}
+            <button 
+                onClick={handleMuteToggle}
+                className={`bg-white border-4 border-black p-3 shadow-hard hover:shadow-none hover:translate-y-1 transition-all ${isMuted ? 'text-gray-400' : 'text-black'}`}
+            >
+                {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+            </button>
+
             {/* Champ Box */}
             <div className="bg-white border-4 border-black p-3 shadow-hard transform -rotate-1">
             <div className="flex items-center gap-2 text-black mb-1">

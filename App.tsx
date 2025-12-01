@@ -93,6 +93,10 @@ const App: React.FC = () => {
     setCurrentScreen('game');
   };
 
+  const handleBackToHome = () => {
+    setCurrentScreen('setup');
+  };
+
   const updateSettings = useCallback((newSettings: Partial<GameSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   }, []);
@@ -125,12 +129,15 @@ const App: React.FC = () => {
             sensitivity={settings.sensitivity}
             calibration={settings.calibration}
             threshold={settings.threshold}
+            sfxVolume={settings.sfxVolume ?? 50}
+            musicVolume={settings.musicVolume ?? 50}
           />
         )}
 
         {currentScreen === 'settings' && (
           <SettingsScreen 
-            onBack={handleBackToGame} 
+            onBack={handleBackToGame}
+            onHome={handleBackToHome}
             sensorData={sensorData} 
             settings={settings}
             onUpdateSettings={updateSettings}

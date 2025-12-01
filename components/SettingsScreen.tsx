@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Save, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Home } from 'lucide-react';
 import { NeonButton } from './NeonButton';
 import { SensorData, GameSettings } from '../types';
 
 interface SettingsScreenProps {
   onBack: () => void;
+  onHome: () => void;
   sensorData: SensorData;
   settings: GameSettings;
   onUpdateSettings: (newSettings: Partial<GameSettings>) => void;
@@ -12,7 +13,8 @@ interface SettingsScreenProps {
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ 
-  onBack, 
+  onBack,
+  onHome,
   sensorData, 
   settings, 
   onUpdateSettings,
@@ -387,6 +389,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <div className="flex items-center justify-center gap-2">
               <ArrowLeft />
               Back to Ring
+            </div>
+          </NeonButton>
+
+          <NeonButton onClick={onHome} variant="cyan" className="w-full max-w-md">
+            <div className="flex items-center justify-center gap-2">
+              <Home size={20} />
+              Back to Home
             </div>
           </NeonButton>
         </div>

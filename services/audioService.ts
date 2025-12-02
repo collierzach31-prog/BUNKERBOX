@@ -170,40 +170,42 @@ export const playArcadeSound = (type: 'impact' | 'tick' | 'win' | 'lock' | 'newR
   }
 };
 
-// STANDARD HIP-HOP KIT
-export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) => {
+// MIAMI / KODAK STYLE KIT
+export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass' | 'melody', time: number) => {
     if (!audioCtx) return;
     const gain = audioCtx.createGain();
     gain.connect(audioCtx.destination);
 
     if (type === 'kick') {
-        // Tight, Punchy Kick (Less "808", more "Drum Machine")
+        // Miami Bass Kick (Long, distorted 808)
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.connect(gain);
         
-        osc.frequency.setValueAtTime(100, time);
-        osc.frequency.exponentialRampToValueAtTime(50, time + 0.1);
+        osc.frequency.setValueAtTime(130, time);
+        osc.frequency.exponentialRampToValueAtTime(35, time + 0.1);
         
-        gain.gain.setValueAtTime(0.8 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+        // Slight distortion via gain clipping (simulated by driving it hard then limiting? 
+        // WebAudio clips automatically above 1.0, but let's keep it clean and loud)
+        gain.gain.setValueAtTime(1.0 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.6); // Long tail
         
         osc.start(time);
-        osc.stop(time + 0.2);
+        osc.stop(time + 0.6);
         
     } else if (type === 'snare') {
-        // Crisp Snare (Snap + Body)
+        // Dry, Sharp Clap/Snare
         const osc = audioCtx.createOscillator();
         osc.type = 'triangle';
         osc.connect(gain);
-        osc.frequency.setValueAtTime(200, time);
+        osc.frequency.setValueAtTime(400, time); // Higher pitch
         
         gain.gain.setValueAtTime(0.3 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
         osc.start(time);
-        osc.stop(time + 0.1);
+        osc.stop(time + 0.05);
 
-        // White Noise for the "Snap"
+        // Crisp Noise
         const bSize = audioCtx.sampleRate * 0.1;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
@@ -213,20 +215,20 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) 
         
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 2000;
+        filter.frequency.value = 1500;
         
         const nGain = audioCtx.createGain();
         noise.connect(filter);
         filter.connect(nGain);
         nGain.connect(audioCtx.destination);
 
-        nGain.gain.setValueAtTime(0.4 * musicVolume, time);
-        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+        nGain.gain.setValueAtTime(0.5 * musicVolume, time);
+        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.08); // Short and tight
         noise.start(time);
         
     } else if (type === 'hat') {
-        // Clean Closed Hi-Hat
-        const bSize = audioCtx.sampleRate * 0.03;
+        // Ticking Trap Hat
+        const bSize = audioCtx.sampleRate * 0.02;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
         for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
@@ -235,28 +237,46 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) 
         
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 6000;
+        filter.frequency.value = 8000;
         
         noise.connect(filter);
         filter.connect(gain);
         
-        gain.gain.setValueAtTime(0.1 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.03);
+        gain.gain.setValueAtTime(0.15 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.02);
         noise.start(time);
         
     } else if (type === 'bass') {
-        // Smooth Sub Bass
+        // Sub Bass Reinforcement
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.connect(gain);
+        osc.frequency.setValueAtTime(40, time);
+        gain.gain.setValueAtTime(0.6 * musicVolume, time);
+        gain.gain.linearRampToValueAtTime(0, time + 0.4);
+        osc.start(time);
+        osc.stop(time + 0.4);
+
+    } else if (type === 'melody') {
+        // "Cartoony" Flute / Pluck (Kodak Style)
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine'; // Pure tone like a flute
+        osc.connect(gain);
         
-        osc.frequency.setValueAtTime(60, time);
+        // Simple Pentatonic Melody Generator based on time
+        // C Minor Pentatonic: C, Eb, F, G, Bb
+        const scale = [523.25, 622.25, 698.46, 783.99, 932.33]; 
+        // Pick a note based on the time to be deterministic per beat
+        const noteIndex = Math.floor(time * 100) % scale.length;
+        const freq = scale[noteIndex];
+
+        osc.frequency.setValueAtTime(freq, time);
         
-        gain.gain.setValueAtTime(0.4 * musicVolume, time);
-        gain.gain.linearRampToValueAtTime(0.3, time + 0.1);
-        gain.gain.linearRampToValueAtTime(0, time + 0.3);
+        // Plucky Envelope
+        gain.gain.setValueAtTime(0.3 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
         
         osc.start(time);
-        osc.stop(time + 0.3);
+        osc.stop(time + 0.15);
     }
 };

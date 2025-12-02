@@ -34,8 +34,8 @@ export const BackgroundMusic = React.memo(() => {
             audioCtx.resume().catch(() => {});
         }
 
-        // 100 BPM - Steady Flow
-        const stepTime = 150;
+        // ~140 BPM (70 BPM Half-time) - Miami Bounce
+        const stepTime = 107;
         beatStepRef.current = 0;
         
         musicIntervalRef.current = window.setInterval(() => {
@@ -43,27 +43,31 @@ export const BackgroundMusic = React.memo(() => {
             if (audioCtx.state === 'suspended') return;
 
             const now = audioCtx.currentTime;
-            const step = beatStepRef.current % 16;
+            const step = beatStepRef.current % 32; // 2 Bar Loop for variation
             
-            // Kick: Classic "Boom... Bap... Boom-Boom Bap"
-            // 0 (1), 8 (3), 10 (3&)
-            if (step === 0 || step === 8 || step === 10) {
+            // Kick: Bouncy Miami Pattern
+            // Bar 1: 1, 3&, 4& (Steps 0, 10, 14)
+            // Bar 2: 1, 2&, 4 (Steps 16, 22, 28)
+            if (step === 0 || step === 10 || step === 14 || step === 16 || step === 22 || step === 28) {
                 playDrum('kick', now);
             }
             
-            // Snare: Solid on 2 and 4
-            if (step === 4 || step === 12) {
+            // Snare: Hard on 3 (Half-time feel) -> Steps 8 and 24
+            if (step === 8 || step === 24) {
                 playDrum('snare', now);
             }
             
-            // Hi-hats: Steady 8th notes for flow
-            if (step % 2 === 0) {
-                playDrum('hat', now);
-            }
+            // Hi-hats: Fast rolls
+            // Every 2 steps (8th notes) usually, but let's do every step (16ths) for trap energy
+            // Plus some 32nd note rolls on specific beats
+            playDrum('hat', now);
             
-            // Bass: Follows the kick for groove
-            if (step === 0 || step === 8 || step === 10) {
-                playDrum('bass', now);
+            // Melody: "Cartoony" Plucks (Syncopated)
+            // Playing around the beat
+            if (step === 0 || step === 3 || step === 6 || step === 11 || step === 14 || 
+                step === 16 || step === 19 || step === 22 || step === 27) {
+                // @ts-ignore - 'melody' is valid in implementation but TS might complain if interface isn't updated in types.ts (it's inferred here though)
+                playDrum('melody', now);
             }
 
             beatStepRef.current++;

@@ -227,7 +227,7 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass' | 'melody', tim
         noise.start(time);
         
     } else if (type === 'hat') {
-        // Ticking Trap Hat
+        // Ticking Trap Hat - Smoother
         const bSize = audioCtx.sampleRate * 0.02;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
@@ -237,12 +237,12 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass' | 'melody', tim
         
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 8000;
+        filter.frequency.value = 6000; // Lowered from 8000 to reduce harsh treble
         
         noise.connect(filter);
         filter.connect(gain);
         
-        gain.gain.setValueAtTime(0.15 * musicVolume, time);
+        gain.gain.setValueAtTime(0.12 * musicVolume, time);
         gain.gain.exponentialRampToValueAtTime(0.01, time + 0.02);
         noise.start(time);
         

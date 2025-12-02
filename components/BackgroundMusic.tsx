@@ -34,8 +34,8 @@ export const BackgroundMusic = React.memo(() => {
             audioCtx.resume().catch(() => {});
         }
 
-        // ~140 BPM (70 BPM Half-time) - Miami Bounce
-        const stepTime = 107;
+        // ~120 BPM (60 BPM Half-time) - Slower, Heavier Miami Bounce
+        const stepTime = 125;
         beatStepRef.current = 0;
         
         musicIntervalRef.current = window.setInterval(() => {
@@ -43,12 +43,12 @@ export const BackgroundMusic = React.memo(() => {
             if (audioCtx.state === 'suspended') return;
 
             const now = audioCtx.currentTime;
-            const step = beatStepRef.current % 32; // 2 Bar Loop for variation
+            const step = beatStepRef.current % 32; // 2 Bar Loop
             
-            // Kick: Bouncy Miami Pattern
-            // Bar 1: 1, 3&, 4& (Steps 0, 10, 14)
+            // Kick: Spaced out Miami Pattern
+            // Bar 1: 1, 3& (Steps 0, 10)
             // Bar 2: 1, 2&, 4 (Steps 16, 22, 28)
-            if (step === 0 || step === 10 || step === 14 || step === 16 || step === 22 || step === 28) {
+            if (step === 0 || step === 10 || step === 16 || step === 22 || step === 28) {
                 playDrum('kick', now);
             }
             
@@ -57,16 +57,21 @@ export const BackgroundMusic = React.memo(() => {
                 playDrum('snare', now);
             }
             
-            // Hi-hats: Fast rolls
-            // Every 2 steps (8th notes) usually, but let's do every step (16ths) for trap energy
-            // Plus some 32nd note rolls on specific beats
-            playDrum('hat', now);
+            // Hi-hats: Slower flow (8th notes instead of 16ths)
+            // Steps: 0, 2, 4, 6... 
+            if (step % 2 === 0) {
+                playDrum('hat', now);
+            }
+            // Occasional triplet roll at the end of the loop
+            if (step === 30 || step === 31) {
+                playDrum('hat', now);
+            }
             
             // Melody: "Cartoony" Plucks (Syncopated)
-            // Playing around the beat
-            if (step === 0 || step === 3 || step === 6 || step === 11 || step === 14 || 
-                step === 16 || step === 19 || step === 22 || step === 27) {
-                // @ts-ignore - 'melody' is valid in implementation but TS might complain if interface isn't updated in types.ts (it's inferred here though)
+            // Slightly simplified pattern
+            if (step === 0 || step === 3 || step === 6 || step === 14 || 
+                step === 16 || step === 19 || step === 27) {
+                // @ts-ignore
                 playDrum('melody', now);
             }
 

@@ -170,64 +170,41 @@ export const playArcadeSound = (type: 'impact' | 'tick' | 'win' | 'lock' | 'newR
   }
 };
 
-// MODERN RAP/HIP-HOP KIT
+// STANDARD HIP-HOP KIT
 export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) => {
     if (!audioCtx) return;
     const gain = audioCtx.createGain();
     gain.connect(audioCtx.destination);
 
     if (type === 'kick') {
-        // Deep 808-style Kick
+        // Tight, Punchy Kick (Less "808", more "Drum Machine")
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.connect(gain);
         
-        // Pitch drop: Start high for the "click", drop deep
-        osc.frequency.setValueAtTime(120, time);
-        osc.frequency.exponentialRampToValueAtTime(45, time + 0.15);
+        osc.frequency.setValueAtTime(100, time);
+        osc.frequency.exponentialRampToValueAtTime(50, time + 0.1);
         
-        gain.gain.setValueAtTime(0.9 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.4); // Longer decay
+        gain.gain.setValueAtTime(0.8 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
         
         osc.start(time);
-        osc.stop(time + 0.4);
+        osc.stop(time + 0.2);
         
     } else if (type === 'snare') {
-        // Sharp Trap Snare / Clap hybrid
+        // Crisp Snare (Snap + Body)
         const osc = audioCtx.createOscillator();
         osc.type = 'triangle';
         osc.connect(gain);
-        osc.frequency.setValueAtTime(180, time);
+        osc.frequency.setValueAtTime(200, time);
         
-        gain.gain.setValueAtTime(0.4 * musicVolume, time);
+        gain.gain.setValueAtTime(0.3 * musicVolume, time);
         gain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
         osc.start(time);
         osc.stop(time + 0.1);
 
-        // Noise for the "crack"
-        const bSize = audioCtx.sampleRate * 0.15;
-        const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
-        const dat = buff.getChannelData(0);
-        for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buff;
-        
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 2500; // Mid-range crack
-        
-        const nGain = audioCtx.createGain();
-        noise.connect(filter);
-        filter.connect(nGain);
-        nGain.connect(audioCtx.destination);
-
-        nGain.gain.setValueAtTime(0.5 * musicVolume, time);
-        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.15);
-        noise.start(time);
-        
-    } else if (type === 'hat') {
-        // Metallic Trap Hi-Hat
-        const bSize = audioCtx.sampleRate * 0.05;
+        // White Noise for the "Snap"
+        const bSize = audioCtx.sampleRate * 0.1;
         const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
         const dat = buff.getChannelData(0);
         for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
@@ -236,28 +213,50 @@ export const playDrum = (type: 'kick' | 'snare' | 'hat' | 'bass', time: number) 
         
         const filter = audioCtx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 8000; // Sizzle
+        filter.frequency.value = 2000;
+        
+        const nGain = audioCtx.createGain();
+        noise.connect(filter);
+        filter.connect(nGain);
+        nGain.connect(audioCtx.destination);
+
+        nGain.gain.setValueAtTime(0.4 * musicVolume, time);
+        nGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+        noise.start(time);
+        
+    } else if (type === 'hat') {
+        // Clean Closed Hi-Hat
+        const bSize = audioCtx.sampleRate * 0.03;
+        const buff = audioCtx.createBuffer(1, bSize, audioCtx.sampleRate);
+        const dat = buff.getChannelData(0);
+        for(let i=0; i<bSize; i++) dat[i] = (Math.random()*2-1);
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buff;
+        
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 6000;
         
         noise.connect(filter);
         filter.connect(gain);
         
-        gain.gain.setValueAtTime(0.15 * musicVolume, time);
-        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.05);
+        gain.gain.setValueAtTime(0.1 * musicVolume, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.03);
         noise.start(time);
         
     } else if (type === 'bass') {
-        // Sub Bass (Sine wave reinforcement)
+        // Smooth Sub Bass
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.connect(gain);
         
-        osc.frequency.setValueAtTime(45, time); // Low F
+        osc.frequency.setValueAtTime(60, time);
         
-        gain.gain.setValueAtTime(0.5 * musicVolume, time);
-        gain.gain.linearRampToValueAtTime(0.4, time + 0.1);
-        gain.gain.linearRampToValueAtTime(0, time + 0.5);
+        gain.gain.setValueAtTime(0.4 * musicVolume, time);
+        gain.gain.linearRampToValueAtTime(0.3, time + 0.1);
+        gain.gain.linearRampToValueAtTime(0, time + 0.3);
         
         osc.start(time);
-        osc.stop(time + 0.5);
+        osc.stop(time + 0.3);
     }
 };

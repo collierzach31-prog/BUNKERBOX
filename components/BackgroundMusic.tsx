@@ -34,7 +34,7 @@ export const BackgroundMusic = React.memo(() => {
             audioCtx.resume().catch(() => {});
         }
 
-        // ~100 BPM - Solid Rap/Hip-Hop Tempo
+        // 100 BPM - Steady Flow
         const stepTime = 150;
         beatStepRef.current = 0;
         
@@ -45,27 +45,24 @@ export const BackgroundMusic = React.memo(() => {
             const now = audioCtx.currentTime;
             const step = beatStepRef.current % 16;
             
-            // Kick: Heavy on 1, syncopated on the "and of 3" (step 10)
-            if (step === 0 || step === 10 || step === 14) {
+            // Kick: Classic "Boom... Bap... Boom-Boom Bap"
+            // 0 (1), 8 (3), 10 (3&)
+            if (step === 0 || step === 8 || step === 10) {
                 playDrum('kick', now);
             }
             
-            // Snare: Hard on 2 and 4
+            // Snare: Solid on 2 and 4
             if (step === 4 || step === 12) {
                 playDrum('snare', now);
             }
             
-            // Hi-hats: 8th notes with a triplet roll at the end
+            // Hi-hats: Steady 8th notes for flow
             if (step % 2 === 0) {
                 playDrum('hat', now);
             }
-            // Occasional 16th note hat for flavor
-            if (step === 15) {
-                playDrum('hat', now);
-            }
             
-            // Bass: Deep sub following the kick
-            if (step === 0 || step === 10) {
+            // Bass: Follows the kick for groove
+            if (step === 0 || step === 8 || step === 10) {
                 playDrum('bass', now);
             }
 

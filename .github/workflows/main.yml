@@ -3,8 +3,13 @@ name: Build Firmware
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "main" ]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -47,3 +52,9 @@ jobs:
       with:
         name: firmware
         path: .pio/build/esp32-s3-devkitc-1/firmware.bin
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: .pio/build/esp32-s3-devkitc-1/firmware.bin
